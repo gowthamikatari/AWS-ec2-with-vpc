@@ -16,12 +16,12 @@ resource "aws_subnet" "public_subnet" {
 resource "aws_subnet" "private_subnet" {
   vpc_id     = aws_vpc.main.id
   cidr_block = "10.0.2.0/24"
-  availability_zone = "ap-south-1a"
+  availability_zone = "us-east-1a"
    tags = {
     Name = "private_subnet"
   }
 }
-resource "aws_route_table" "public_RT" {
+resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
  route {
@@ -33,12 +33,6 @@ resource "aws_route_table" "public_RT" {
     Name = "route-table"
   }
 }
-
-resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public_subnet.id
-  route_table_id = aws_route_table.public.id
-}
-
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
 
@@ -46,10 +40,16 @@ resource "aws_internet_gateway" "gw" {
     Name = "IGW"
   }
 }
+
+resource "aws_route_table_association" "public" {
+  subnet_id      = aws_subnet.public_subnet.id
+  route_table_id = aws_route_table.public.id
+}
+
 resource "aws_instance" "terraform-server" {
   ami                     = "ami-04e5276ebb8451442"
   instance_type           = "t2.micro"
-  key                     = "key_pair"
+  key_name                    = "key_pair"
    subnet_id              = aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.ssh_access.id]
 
@@ -68,8 +68,7 @@ resource "aws_instance" "terraform-server" {
 
     sudo systemctl restart apache2
   EOF
-
-tags = {
+ tags = {
     Name = "terraform-server"
   }
 }
@@ -95,4 +94,12 @@ resource "aws_security_group" "ssh_access" {
      protocol    = -1
      cidr_blocks = ["0.0.0.0/0"]
  }
+ }
+
+  resource "aws_eip" "ip" {
+   instance = aws_instance.web_server.id
+   vpc      = true
+   tags = {
+     Name = "elastic-ip"
+   }
  }
