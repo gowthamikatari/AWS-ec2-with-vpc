@@ -1,2 +1,1 @@
-# AWS-ec2-with-vpc
-ec2 and vpc creation
+https://medium.com/aws-in-plain-english/terraform-hands-on-project-d2105bbc0c62
